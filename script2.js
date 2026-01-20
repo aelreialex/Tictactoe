@@ -165,7 +165,7 @@ function initiateGame() {
 
     for (let field of clearField) {
         field.textContent = "";
-        field.style.backgroundColor = "ffffff";
+        field.style.backgroundColor = "#ffffff";
     }
 
     let playerChar;
