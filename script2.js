@@ -75,6 +75,10 @@ function initGlobalObject() {
 
     //Referens till element för felmeddelanden
     oGameData.timeRef = document.querySelector("#errorMsg");
+
+    oGameData.myTimer;
+
+    oGameData.seconds = 5;
 }
 
 /**
@@ -87,13 +91,19 @@ function initGlobalObject() {
  */
 function checkForGameOver() {
     if (checkForWinner(oGameData.playerOne) === true) {
-        return 1;
+        // return 1;
+        clearTimer();
+        gameOver(1);
     } else if (checkForWinner(oGameData.playerTwo) === true) {
-        return 2;
+        // return 2;
+        clearTimer();
+        gameOver(2);
     } else if (checkForDraw() === true) {
-        return 3;
+        // return 3;
+        clearTimer();
+        gameOver(3);
     } else {
-        return 0;
+        // return 0;
     }
 }
 
@@ -133,10 +143,58 @@ function checkForDraw() {
     return !oGameData.gameField.includes("");
 }
 
+
 // Nedanstående funktioner väntar vi med!
 function prepGame() {
     document.querySelector("#gameArea").classList.add("d-none");
-    document.querySelector("#newGame").addEventListener("click", initiateGame);
+    document.querySelector("#newGame").addEventListener("click", (event) => {
+        event.preventDefault()
+        if (validateForm()) {
+            initiateGame();
+        }
+        else {
+            console.log('FEL VALIDATEFORM FALSE')
+        }
+    });
+
+}
+
+function validateForm() {
+    const nick1Ref = document.querySelector("#nick1");
+    const nick2Ref = document.querySelector("#nick2");
+    const color1Ref = document.querySelector("#color1");
+    const color2Ref = document.querySelector("#color2");
+
+    oGameData.nickNamePlayerOne = nick1Ref.value;
+    oGameData.nickNamePlayerTwo = nick2Ref.value;
+    oGameData.colorPlayerOne = color1Ref.value;
+    oGameData.colorPlayerTwo = color2Ref.value;
+    
+    const invalidColors = ['#ffffff', '#000000'];
+    console.log(oGameData.nickNamePlayerOne.length);
+    console.log('validate form test');
+    
+    try{
+        if(oGameData.nickNamePlayerOne.length < 3 || oGameData.nickNamePlayerOne.length > 10){
+                throw ({msg : "Spelare 1's namn får bara vara mellan 3-10 långt", nodeRef : nick1Ref})
+            } else if(oGameData.nickNamePlayerTwo.length < 3 || oGameData.nickNamePlayerTwo.length > 10){
+                throw ({msg : "Spelare 2's namn får bara vara mellan 3-10 långt", nodeRef : nick2Ref})  
+            } else if (oGameData.nickNamePlayerOne === oGameData.nickNamePlayerTwo){
+                throw ({ msg : "Ni får inte ha samma spelarnamn!", nodeRef : nick2Ref})
+            } else if (invalidColors.includes(oGameData.colorPlayerOne)){
+                throw ({msg : "Färgen får inte vara vit eller svart var vänligen välj en ny färg!", nodeRef : color1Ref})
+            } else if (invalidColors.includes(oGameData.colorPlayerTwo)){
+                throw ({msg : "Färgen får inte vara vit eller svart var vänligen välj en ny färg!", nodeRef : color2Ref})
+            }
+        return true; 
+    }
+    catch (error){
+        console.log(error.msg);
+        document.querySelector('#errorMsg').textContent = error.msg;
+        error.nodeRef.focus();
+        return false;
+    }
+    
 }
 
 function initiateGame() {
@@ -145,11 +203,11 @@ function initiateGame() {
     document.querySelector("#theForm").classList.add("d-none");
     document.querySelector("#gameArea").classList.remove("d-none");
     document.querySelector("#errorMsg").textContent = "";
-    oGameData.nickNamePlayerOne = document.querySelector("#nick1").value;
-    oGameData.nickNamePlayerTwo = document.querySelector("#nick2").value;
+    // oGameData.nickNamePlayerOne = document.querySelector("#nick1").value;
+    // oGameData.nickNamePlayerTwo = document.querySelector("#nick2").value;
 
-    oGameData.colorPlayerOne = document.querySelector("#color1").value;
-    oGameData.colorPlayerTwo = document.querySelector("#color2").value;
+    // oGameData.colorPlayerOne = document.querySelector("#color1").value;
+    // oGameData.colorPlayerTwo = document.querySelector("#color2").value;
     console.log(
         oGameData.nickNamePlayerOne,
         oGameData.nickNamePlayerTwo,
@@ -188,6 +246,7 @@ function initiateGame() {
     //     executeMove(event);
     // });
     document.querySelector("#gameArea").addEventListener("click", executeMove);
+    
 }
 
 function executeMove(event) {
@@ -203,31 +262,46 @@ function executeMove(event) {
             if (oGameData.currentPlayer === oGameData.playerOne) {
                 event.target.style.backgroundColor = oGameData.colorPlayerOne;
                 event.target.textContent = "X";
-                oGameData.currentPlayer = "O";
-                document.querySelector(".jumbotron > h1").textContent =
-                    `Aktuell spelare är ${oGameData.nickNamePlayerTwo}`;
+                switchCurrentPlayer();
+                // clearTimeout(oGameData.clearTimer);
+                // timer();
             } else {
                 event.target.style.backgroundColor = oGameData.colorPlayerTwo;
                 event.target.textContent = "O";
-                oGameData.currentPlayer = "X";
-                document.querySelector(".jumbotron > h1").textContent =
-                    `Aktuell spelare är ${oGameData.nickNamePlayerOne}`;
+                switchCurrentPlayer();
+                // clearTimeout(oGameData.clearTimer);
+                // timer();
             }
-
-            if (checkForGameOver() === 1) {
-                console.log("Spelare 1 vann");
-                gameOver(1);
-            } else if (checkForGameOver() === 2) {
-                console.log("Spelare 2 vann");
-                gameOver(2);
-            } else if (checkForGameOver() === 3) {
-                console.log("Oavgjort");
-                gameOver(3);
-            } else {
-                console.log("Spelet fortsätter");
-            }
+                checkForGameOver();
+            // if (checkForGameOver() === 1) {
+            //     console.log("Spelare 1 vann");
+            //     gameOver(1);
+            // } else if (checkForGameOver() === 2) {
+            //     console.log("Spelare 2 vann");
+            //     gameOver(2);
+            // } else if (checkForGameOver() === 3) {
+            //     console.log("Oavgjort");
+            //     gameOver(3);
+            // } else {
+            //     console.log("Spelet fortsätter");
+            // }
         }
     }
+}
+
+function switchCurrentPlayer() {
+    if(oGameData.currentPlayer === oGameData.playerOne) {
+        oGameData.currentPlayer = oGameData.playerTwo;
+        document.querySelector(".jumbotron > h1").textContent =
+        `Aktuell spelare är ${oGameData.nickNamePlayerTwo}`;
+    } else {
+        oGameData.currentPlayer = oGameData.playerOne
+        document.querySelector(".jumbotron > h1").textContent =
+        `Aktuell spelare är ${oGameData.nickNamePlayerOne}`;
+    }
+    clearTimer();
+    oGameData.seconds = 5;
+    timer();
 }
 
 function gameOver(result) {
@@ -244,7 +318,7 @@ function gameOver(result) {
         console.log(`${oGameData.nickNamePlayerOne} vann`);
     } else if (result === 2) {
         document.querySelector(".jumbotron > h1").textContent =
-            `${oGameData.nickNamePlayerTwo} vann`;
+            `${oGameData.nickNamePlayerTwo} vann Spela igen?`;
         console.log(`${oGameData.nickNamePlayerTwo} vann. Spela igen?`);
     } else {
         document.querySelector(".jumbotron > h1").textContent =
@@ -253,6 +327,23 @@ function gameOver(result) {
     initGlobalObject();
 }
 
-function validateForm() {}
+// function validateForm() {}
 
-function timer() {}
+function timer() {
+//    oGameData.myTimer = setTimeout(switchCurrentPlayer, 5000);
+    oGameData.myTimer = setInterval(myInterval, 1000);
+    document.querySelector('#errorMsg').textContent = oGameData.seconds;
+}
+
+function myInterval() {
+    if(oGameData.seconds === 0 ) {
+        switchCurrentPlayer();
+    }
+    document.querySelector('#errorMsg').textContent = oGameData.seconds - 1;
+    oGameData.seconds--;
+}
+
+function clearTimer() {
+    clearInterval(oGameData.myTimer);
+    document.querySelector('#errorMsg').textContent = "";
+}
